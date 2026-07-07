@@ -6,6 +6,7 @@ export const config = {
   cors: {
     origin: process.env.CORS_ORIGIN ?? '*',
   },
+  redis_url: process.env.REDIS_URL ?? 'redis://localhost:6379',
   get isDevelopment() {
     return this.nodeEnv === 'development';
   },
