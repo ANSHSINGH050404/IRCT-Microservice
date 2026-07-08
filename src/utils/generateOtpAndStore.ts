@@ -1,12 +1,9 @@
-import { createHmac, randomUUID } from "node:crypto";
+import bcrypt from 'bcrypt';
+import { randomUUID } from "node:crypto";
 import { config } from "../config";
 import RedisClient from "../config/redis";
 
 const redis = RedisClient.getInstance();
-
-function hmacFor(email: string, otp: string) {
-  return createHmac("sha256", config.OTP_SECRET).update(`${email}:${otp}`).digest("hex");
-}
 
 export async function generateOtpAndStore(meta: any) {
   const rateKey = `otp:${meta.email}`;
@@ -18,7 +15,7 @@ export async function generateOtpAndStore(meta: any) {
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const otpSessionId = randomUUID();
-  const hashedOtp = hmacFor(meta.email, otp);
+  const hashedOtp = await bcrypt.hash(otp, 10);
 
   await redis.set(`otp:session:${otpSessionId}`, hashedOtp, "EX", config.OTP_EXPIRY_TIME);
   await redis.incr(rateKey);
