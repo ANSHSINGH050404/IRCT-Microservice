@@ -4,6 +4,7 @@ import express from 'express';
 import { requestLogger } from './middlewares/req.middleware.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import authRoutes from './routes/auth.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(requestLogger);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/user', userRoutes);
 app.use(errorHandler);
 app.get('/', (_req, res) => {
   res.json({ success: true, message: 'User service is running' });
