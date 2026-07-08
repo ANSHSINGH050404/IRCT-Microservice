@@ -17,7 +17,7 @@ export async function generateOtpAndStore(meta: any) {
   const otpSessionId = randomUUID();
   const hashedOtp = await bcrypt.hash(otp, 10);
 
-  await redis.set(`otp:session:${otpSessionId}`, hashedOtp, "EX", config.OTP_EXPIRY_TIME);
+  await redis.set(`otp:session:${otpSessionId}`, hashedOtp, "EX", config.OTP_EXPIRY_TIME * 60);
   await redis.incr(rateKey);
   await redis.expire(rateKey, 60 * 60);
 
