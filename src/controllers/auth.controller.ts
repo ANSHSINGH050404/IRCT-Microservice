@@ -18,9 +18,9 @@ export const sendOtp = async(req: any, res: any, next: any) => {
       throw new BadRequestError("Passwords do not match");
     }
 
-    const { optSessionId } = await authService.sendOtp(firstName, lastName, email, password);
+    const { otpSessionId } = await authService.sendOtp(firstName, lastName, email, password);
 
-    res.cookie("optSessionId", optSessionId, {
+    res.cookie("otpSessionId", otpSessionId, {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
@@ -29,4 +29,17 @@ export const sendOtp = async(req: any, res: any, next: any) => {
   } catch (error) {
     next(error);
   }
+}
+
+export const verifyOTP = async (req: any, res: any, next: any) => {
+  const { otp } = req.body;
+  const otpSessionId = req.cookies.otpSessionId;
+
+  if (!otp || !otpSessionId) {
+    throw new BadRequestError("OTP and session ID are required");
+  }
+
+  const result = await authService.verifyOTP(otp, otpSessionId);
+
+  res.status(200).json(result);
 }

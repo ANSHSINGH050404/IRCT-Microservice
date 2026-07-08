@@ -1,7 +1,7 @@
 
 import { prisma } from "../../db";
 import bcrypt from "bcrypt";
-import { sendEmail } from "../utils/sendEmail";
+import { sendEmail, verifyOtp } from "../utils/sendEmail";
 import { generateOtpAndStore } from "../utils/generateOtpAndStore";
 
 export const sendOtp = async(firstName: string, lastName: string, email: string, password: string) => {
@@ -19,9 +19,14 @@ export const sendOtp = async(firstName: string, lastName: string, email: string,
       email,
     hashedPassword,
     };
-    const {otp, optSessionId} = await generateOtpAndStore(meta);
+    const {otp, otpSessionId} = await generateOtpAndStore(meta);
     await sendEmail(email, otp);
 
-    return { optSessionId };
+    return { otpSessionId };
+}
+
+
+export const verifyOTP = async(otp: string, otpSessionId: string) => {
+     return await verifyOtp(otp, otpSessionId);
 }
 
