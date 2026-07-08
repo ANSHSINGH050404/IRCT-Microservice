@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: irct-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: irct
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: irct-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  redis-ui:
+    image: redis/redisinsight:latest
+    container_name: irct-redis-ui
+    restart: always
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: irct-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
