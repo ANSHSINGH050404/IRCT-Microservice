@@ -3,8 +3,8 @@ import { prisma } from "../../db";
 import bcrypt from "bcrypt";
 import { sendEmail, verifyOtp } from "../utils/sendEmail";
 import { generateOtpAndStore } from "../utils/generateOtpAndStore";
-import { generateAccessToken, generateRefreshToken } from "../utils/auth";
-import { BadRequestError } from "../utils/error";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/auth";
+import { BadRequestError, UnauthorizedError } from "../utils/error";
 import RedisClient from "../config/redis";
 import { config } from "../config";
 
@@ -69,4 +69,22 @@ export const login = async (email: string, password: string, deviceId: string) =
   const { password: _, ...loggedUser } = user;
 
   return { accessToken, refreshToken, loggedUser };
+}
+
+export const rotateRefreshToken = async (oldRefreshToken: string, deviceId: string) => {
+  const payload = verifyRefreshToken(oldRefreshToken);
+
+  const storedUserId = await redis.get(`refresh_token:${payload.jti}`);
+  if (!storedUserId || storedUserId !== payload.id) {
+    throw new UnauthorizedError("Refresh token has been revoked");
+  }
+
+  await redis.del(`refresh_token:${payload.jti}`);
+
+  const accessToken = generateAccessToken(payload.id);
+  const { token: newRefreshToken, jti } = generateRefreshToken(payload.id);
+
+  await redis.set(`refresh_token:${jti}`, payload.id, "EX", config.REFRESH_TOKEN_EXPIRY_TIME);
+
+  return { accessToken, refreshToken: newRefreshToken };
 }

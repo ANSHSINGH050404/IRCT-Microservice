@@ -18,7 +18,7 @@ export const config = {
 
   REFRESH_TOKEN_EXPIRY_TIME: parseInt(process.env.REFRESH_TOKEN_EXPIRY_TIME ?? '604800', 10), // 7 days in seconds
   ACCESS_TOKEN_EXPIRY_TIME: parseInt(process.env.ACCESS_TOKEN_EXPIRY_TIME ?? '900', 10), // 15 minutes in seconds
-
+  REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET ?? 'default-refresh-secret',
   JWT_SECRET: process.env.JWT_SECRET ?? 'default-secret',
   JWT_ALGORITHM: process.env.JWT_ALGORITHM ?? 'HS256',
   JWT_ISSUER: process.env.JWT_ISSUER ?? 'irct',

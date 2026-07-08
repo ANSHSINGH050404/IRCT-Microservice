@@ -29,12 +29,12 @@ export const verifyAccessToken = (token: string): { id: string } => {
   }
 };
 
-export const verifyRefreshToken = (token: string): { id: string } => {
+export const verifyRefreshToken = (token: string): { id: string; jti: string } => {
   try {
     const decoded = jwt.verify(
       token,
       process.env.REFRESH_TOKEN_SECRET as string,
-    ) as { id: string };
+    ) as { id: string; jti: string };
     return decoded;
   } catch (error) {
     throw new Error("Invalid refresh token");

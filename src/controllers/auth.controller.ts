@@ -2,7 +2,6 @@ import { BadRequestError } from "../utils/error";
 import { config } from "../config";
 import * as authService from "../services/auth.service";
 
-
 import { generateDeviceFingerprint  } from "../utils/deviceFingerprint";
 
 export const sendOtp = async(req: any, res: any, next: any) => {
@@ -74,3 +73,29 @@ export const login = async (req: any, res: any, next: any) => {
   }
 }
 
+export const rotateRefreshToken = async (req: any, res: any, next: any) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      throw new BadRequestError("Refresh token is required");
+    }
+
+    const deviceId = generateDeviceFingerprint(req);
+    const { accessToken, refreshToken: newRefreshToken } = await authService.rotateRefreshToken(refreshToken, deviceId);
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: config.isProduction,
+      sameSite: "lax",
+      maxAge: config.REFRESH_TOKEN_EXPIRY_TIME * 1000,
+    }).cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: config.isProduction,
+      sameSite: "lax",
+      maxAge: config.ACCESS_TOKEN_EXPIRY_TIME * 1000,
+    }).status(200).json({ success: true, message: "Token rotated successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
