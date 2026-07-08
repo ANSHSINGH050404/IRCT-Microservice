@@ -2,15 +2,22 @@ import nodemailer from 'nodemailer';
 import { config } from '../config';
 import { logger } from '../config/logger';
 
-const transporter = nodemailer.createTransport({
-  host: config.smtp.host,
-  port: config.smtp.port,
-  secure: config.smtp.port === 465,
-  auth: {
-    user: config.smtp.user,
-    pass: config.smtp.pass,
-  },
-});
+let transporter: nodemailer.Transporter | null = null;
+
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: config.smtp.host,
+      port: config.smtp.port,
+      secure: config.smtp.port === 465,
+      auth: {
+        user: config.smtp.user,
+        pass: config.smtp.pass,
+      },
+    });
+  }
+  return transporter;
+}
 
 export const sendEmail = async (email: string, otp: string) => {
   const mailOptions = {
@@ -32,7 +39,7 @@ export const sendEmail = async (email: string, otp: string) => {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await getTransporter().sendMail(mailOptions);
     logger.info(`OTP email sent to ${email}: ${info.messageId}`);
     return info;
   } catch (error) {

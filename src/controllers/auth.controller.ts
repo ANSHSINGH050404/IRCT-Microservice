@@ -4,7 +4,11 @@ import * as authService from "../services/auth.service";
 
 export const sendOtp = async(req: any, res: any, next: any) => {
   try {
-    const { firstName, lastName, email, password, confirmPassword } = req.body;
+    const email = req.body.email;
+    const password = req.body.password;
+    const confirmPassword = req.body.confirmPassword;
+    const firstName = req.body.firstName ?? req.body.firstname;
+    const lastName = req.body.lastName ?? req.body.lastname;
 
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
       throw new BadRequestError("All fields are required");

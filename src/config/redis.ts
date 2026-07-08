@@ -7,6 +7,7 @@ class RedisClient {
 
     static instance: Redis;
     static isConnected = false;
+    private static errorHandlerAttached = false;
 
     constructor(){}
 
@@ -20,8 +21,23 @@ class RedisClient {
                     return delay;
                 },
                 maxRetriesPerRequest: 3,
+                lazyConnect: true,
             });
-            RedisClient.isConnected = true;
+            RedisClient.instance.connect().catch(() => {});
+        }
+        if (!RedisClient.errorHandlerAttached) {
+            RedisClient.instance.on("error", (err) => {
+                RedisClient.isConnected = false;
+                logger.error(`Redis connection error: ${err?.message ?? "Unknown"}`);
+            });
+            RedisClient.instance.on("connect", () => {
+                RedisClient.isConnected = true;
+                logger.info("Redis connected");
+            });
+            RedisClient.instance.on("close", () => {
+                RedisClient.isConnected = false;
+            });
+            RedisClient.errorHandlerAttached = true;
         }
         return RedisClient.instance;
     }
