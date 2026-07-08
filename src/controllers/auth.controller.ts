@@ -22,7 +22,7 @@ export const sendOtp = async(req: any, res: any, next: any) => {
 
     res.cookie("otpSessionId", otpSessionId, {
       httpOnly: true,
-      secure: true,
+      secure: config.isProduction,
       sameSite: "lax",
       maxAge: config.OTP_EXPIRY_TIME * 1000,
     }).status(200).json({ message: "OTP sent successfully" });

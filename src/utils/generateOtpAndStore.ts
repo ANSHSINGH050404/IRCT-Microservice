@@ -20,7 +20,7 @@ export async function generateOtpAndStore(meta: any) {
   const otpSessionId = randomUUID();
   const hashedOtp = hmacFor(meta.email, otp);
 
-  await redis.set(`otp:${meta.email}:${otpSessionId}`, hashedOtp, "EX", config.OTP_EXPIRY_TIME);
+  await redis.set(`otp:session:${otpSessionId}`, hashedOtp, "EX", config.OTP_EXPIRY_TIME);
   await redis.incr(rateKey);
   await redis.expire(rateKey, 60 * 60);
 
