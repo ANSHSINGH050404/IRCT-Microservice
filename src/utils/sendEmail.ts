@@ -54,27 +54,26 @@ export const sendEmail = async (email: string, otp: string) => {
 
 
 export const verifyOtp = async (otp: string, otpSessionId: string) => {
-  // Implement the logic to verify the OTP using the optSessionId
-  // This is a placeholder implementation; replace it with your actual verification logic
-
     const rawdata = await redis.get(`otp:session:${otpSessionId}`);
 
     if (!rawdata) {
         throw new Error("OTP session not found or expired");
     }
 
-    const hashedOtp = rawdata; // Assuming the OTP is stored in hashed form
-
-    // Compare the provided OTP with the stored hashed OTP
-    const isOtpValid = await bcrypt.compare(otp, hashedOtp);
+    const isOtpValid = await bcrypt.compare(otp, rawdata);
 
     if (!isOtpValid) {
         throw new Error("Invalid OTP");
     }
 
-    // If OTP is valid, you can proceed with further actions (e.g., user registration)
-    return { message: "OTP verified successfully" };
+    const metaRaw = await redis.get(`otp:meta:${otpSessionId}`);
+    if (!metaRaw) {
+        throw new Error("OTP session data not found");
+    }
+    const meta = JSON.parse(metaRaw);
 
+    await redis.del(`otp:session:${otpSessionId}`);
+    await redis.del(`otp:meta:${otpSessionId}`);
 
-
+    return { message: "OTP verified successfully", meta };
 };

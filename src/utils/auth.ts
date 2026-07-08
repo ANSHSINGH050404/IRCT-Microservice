@@ -9,11 +9,13 @@ export const generateAccessToken = (userId: string): string => {
   });
 };
 
-export const generateRefreshToken = (userId: string): string => {
-  const payload = { id: userId, jti: crypto.randomUUID() };
-  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET as string, {
+export const generateRefreshToken = (userId: string): { token: string; jti: string } => {
+  const jti = crypto.randomUUID();
+  const payload = { id: userId, jti };
+  const token = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET as string, {
     expiresIn: "7d",
   });
+  return { token, jti };
 };
 export const verifyAccessToken = (token: string): { id: string } => {
   try {

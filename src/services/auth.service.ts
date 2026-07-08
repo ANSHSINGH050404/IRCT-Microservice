@@ -5,6 +5,10 @@ import { sendEmail, verifyOtp } from "../utils/sendEmail";
 import { generateOtpAndStore } from "../utils/generateOtpAndStore";
 import { generateAccessToken, generateRefreshToken } from "../utils/auth";
 import { BadRequestError } from "../utils/error";
+import RedisClient from "../config/redis";
+import { config } from "../config";
+
+const redis = RedisClient.getInstance();
 
 export const sendOtp = async(firstName: string, lastName: string, email: string, password: string) => {
 
@@ -28,8 +32,22 @@ export const sendOtp = async(firstName: string, lastName: string, email: string,
 }
 
 
-export const verifyOTP = async(otp: string, otpSessionId: string) => {
-     return await verifyOtp(otp, otpSessionId);
+export const verifyOTP = async (otp: string, otpSessionId: string) => {
+  const { message, meta } = await verifyOtp(otp, otpSessionId);
+
+  const user = await prisma.user.create({
+    data: {
+      firstName: meta.firstName,
+      lastName: meta.lastName,
+      email: meta.email,
+      password: meta.hashedPassword,
+      emailVerified: true,
+    },
+  });
+
+  const { password: _, ...loggedUser } = user;
+
+  return { message, user: loggedUser };
 }
 
 export const login = async (email: string, password: string, deviceId: string) => {
@@ -44,7 +62,9 @@ export const login = async (email: string, password: string, deviceId: string) =
   }
 
   const accessToken = generateAccessToken(user.id);
-  const refreshToken = generateRefreshToken(user.id);
+  const { token: refreshToken, jti } = generateRefreshToken(user.id);
+
+  await redis.set(`refresh_token:${jti}`, user.id, "EX", config.REFRESH_TOKEN_EXPIRY_TIME);
 
   const { password: _, ...loggedUser } = user;
 
