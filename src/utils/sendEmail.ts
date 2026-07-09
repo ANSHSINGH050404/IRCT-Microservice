@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
 import { config } from '../config';
-import { logger } from '../../../notification-service/config/logger';
+import { logger } from '../config/logger';
 import RedisClient from '../config/redis';
 
 const redis = RedisClient.getInstance();

@@ -1,14 +1,17 @@
 
 import { prisma } from "../../db";
 import bcrypt from "bcrypt";
-import { sendEmail, verifyOtp } from "../utils/sendEmail";
+import { verifyOtp } from "../utils/sendEmail";
 import { generateOtpAndStore } from "../utils/generateOtpAndStore";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/auth";
 import { BadRequestError, UnauthorizedError } from "../utils/error";
 import RedisClient from "../config/redis";
 import { config } from "../config";
+import { NotificationProducer } from "../kafka/producer/notification.producer";
+import { logger } from "../config/logger"
 
 const redis = RedisClient.getInstance();
+const notificationProducer = new NotificationProducer();
 
 export const sendOtp = async(firstName: string, lastName: string, email: string, password: string) => {
 
@@ -26,8 +29,8 @@ export const sendOtp = async(firstName: string, lastName: string, email: string,
     hashedPassword,
     };
     const {otp, otpSessionId} = await generateOtpAndStore(meta);
-    await sendEmail(email, otp);
-
+    await notificationProducer.sendOTPAndEmail(email, otp,(config.OTP_EXPIRY_TIME)/60);
+    logger.info(`OTP sent to ${email} with expiry time ${(config.OTP_EXPIRY_TIME)/60} minutes`);
     return { otpSessionId };
 }
 

@@ -1,5 +1,5 @@
 import { Kafka, logLevel } from "kafkajs";
-import { logger } from "../../../notification-service/config/logger";
+import { logger } from "./logger";
 
 const kafka = new Kafka({
   clientId: "user-service",
