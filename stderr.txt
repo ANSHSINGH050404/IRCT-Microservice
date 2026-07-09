@@ -1,0 +1,2 @@
+$ bun run --watch src/server.ts
+error: script "dev" exited with code 1

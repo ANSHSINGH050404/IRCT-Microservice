@@ -1,47 +1,34 @@
-import Redis from 'ioredis';
-import { logger } from './logger';
-import { config } from './index';
+import { Redis } from "ioredis";
+import { config } from "./index";
 
+let instance: Redis | null = null;
 
-class RedisClient {
+function getInstance(): Redis {
+  if (!instance) {
+    instance = new Redis(config.redis_url, {
+      maxRetriesPerRequest: 3,
+      retryStrategy(times) {
+        if (times > 3) return null;
+        return Math.min(times * 200, 2000);
+      },
+      lazyConnect: true,
+    });
 
-    static instance: Redis;
-    static isConnected = false;
-    private static errorHandlerAttached = false;
+    instance.on("error", (err) => {
+      console.error("Redis connection error:", err);
+    });
 
-    constructor(){}
+    instance.on("connect", () => {
+      console.log("Connected to Redis");
+    });
 
-    static getInstance() {
-        if (!RedisClient.instance) {
-            RedisClient.instance = new Redis(
-                config.redis_url,
-                {
-                retryStrategy: (times) => {
-                    const delay = Math.min(times * 50, 2000);
-                    return delay;
-                },
-                maxRetriesPerRequest: 3,
-                lazyConnect: true,
-            });
-            RedisClient.instance.connect().catch(() => {});
-        }
-        if (!RedisClient.errorHandlerAttached) {
-            RedisClient.instance.on("error", (err) => {
-                RedisClient.isConnected = false;
-                logger.error(`Redis connection error: ${err?.message ?? "Unknown"}`);
-            });
-            RedisClient.instance.on("connect", () => {
-                RedisClient.isConnected = true;
-                logger.info("Redis connected");
-            });
-            RedisClient.instance.on("close", () => {
-                RedisClient.isConnected = false;
-            });
-            RedisClient.errorHandlerAttached = true;
-        }
-        return RedisClient.instance;
-    }
+    instance.on("close", () => {
+      console.log("Redis connection closed");
+    });
+  }
+  return instance;
 }
 
+const RedisClient = { getInstance };
 
 export default RedisClient;

@@ -54,20 +54,24 @@ export const login = async (req: any, res: any, next: any) => {
       throw new BadRequestError("Email and password are required");
     }
 
-    const deviceId = generateDeviceFingerprint (req);
+    const deviceId = generateDeviceFingerprint(req);
     const { accessToken, refreshToken, loggedUser } = await authService.login(email, password, deviceId);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: config.isProduction,
       sameSite: "lax",
+      path: "/",
       maxAge: config.REFRESH_TOKEN_EXPIRY_TIME * 1000,
-    }).cookie("accessToken", accessToken, {
+    });
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: config.isProduction,
       sameSite: "lax",
+      path: "/",
       maxAge: config.ACCESS_TOKEN_EXPIRY_TIME * 1000,
-    }).status(200).json({ success: true, message: "Login successful", loggedUser });
+    });
+    res.status(200).json({ success: true, message: "Login successful", accessToken, refreshToken, loggedUser });
   } catch (error) {
     next(error);
   }
@@ -88,13 +92,17 @@ export const rotateRefreshToken = async (req: any, res: any, next: any) => {
       httpOnly: true,
       secure: config.isProduction,
       sameSite: "lax",
+      path: "/",
       maxAge: config.REFRESH_TOKEN_EXPIRY_TIME * 1000,
-    }).cookie("accessToken", accessToken, {
+    });
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: config.isProduction,
       sameSite: "lax",
+      path: "/",
       maxAge: config.ACCESS_TOKEN_EXPIRY_TIME * 1000,
-    }).status(200).json({ success: true, message: "Token rotated successfully" });
+    });
+    res.status(200).json({ success: true, message: "Token rotated successfully", accessToken, refreshToken: newRefreshToken });
   } catch (error) {
     next(error);
   }
