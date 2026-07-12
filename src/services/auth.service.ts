@@ -17,7 +17,7 @@ export const sendOtp = async(firstName: string, lastName: string, email: string,
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-        throw new Error("User already exists");
+        throw new BadRequestError("User already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -29,8 +29,8 @@ export const sendOtp = async(firstName: string, lastName: string, email: string,
     hashedPassword,
     };
     const {otp, otpSessionId} = await generateOtpAndStore(meta);
-    await notificationProducer.sendOTPAndEmail(email, otp,(config.OTP_EXPIRY_TIME)/60);
-    logger.info(`OTP sent to ${email} with expiry time ${(config.OTP_EXPIRY_TIME)/60} minutes`);
+    await notificationProducer.sendOTPAndEmail(email, otp, config.OTP_EXPIRY_TIME);
+    logger.info(`OTP sent to ${email} with expiry time ${config.OTP_EXPIRY_TIME} minutes`);
     return { otpSessionId };
 }
 

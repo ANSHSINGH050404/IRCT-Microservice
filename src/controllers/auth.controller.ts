@@ -34,16 +34,20 @@ export const sendOtp = async(req: any, res: any, next: any) => {
 }
 
 export const verifyOTP = async (req: any, res: any, next: any) => {
-  const { otp } = req.body;
-  const otpSessionId = req.cookies.otpSessionId;
+  try {
+    const { otp } = req.body;
+    const otpSessionId = req.cookies.otpSessionId;
 
-  if (!otp || !otpSessionId) {
-    throw new BadRequestError("OTP and session ID are required");
+    if (!otp || !otpSessionId) {
+      throw new BadRequestError("OTP and session ID are required");
+    }
+
+    const result = await authService.verifyOTP(otp, otpSessionId);
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
   }
-
-  const result = await authService.verifyOTP(otp, otpSessionId);
-
-  res.status(200).json(result);
 }
 
 export const login = async (req: any, res: any, next: any) => {

@@ -3,7 +3,7 @@ import { logger } from "./logger";
 
 const kafka = new Kafka({
   clientId: "user-service",
-  brokers: [process.env.KAFKA_BOOTSTRAP_SERVERS || "localhost:9093"],
+  brokers: [process.env.KAFKA_BOOTSTRAP_SERVERS || "localhost:9092"],
   logLevel: logLevel.ERROR,
 
   retry: {
@@ -42,6 +42,6 @@ const disconnectProducer = async () => {
 };
 
 process.on("SIGTERM", disconnectProducer);
-process.on("SIGTNT", disconnectProducer);
+process.on("SIGINT", disconnectProducer);
 
 export { producer, connectProducer, disconnectProducer };

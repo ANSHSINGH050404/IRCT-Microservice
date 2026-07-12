@@ -14,11 +14,14 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
   const token = req.cookies?.accessToken ?? req.headers.authorization?.replace("Bearer ", "");
 
   if (!token) {
-    throw new UnauthorizedError("Access token is required");
+    return next(new UnauthorizedError("Access token is required"));
   }
 
-  const decoded = verifyAccessToken(token);
-  req.user = { id: decoded.id };
-
-  next();
+  try {
+    const decoded = verifyAccessToken(token);
+    req.user = { id: decoded.id };
+    next();
+  } catch (err) {
+    next(err);
+  }
 };

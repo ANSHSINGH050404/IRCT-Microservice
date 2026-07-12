@@ -14,8 +14,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(requestLogger);
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/users/auth', authRoutes);
+app.use('/api/v1/users/user', userRoutes);
 app.get('/', (_req, res) => {
   res.json({ success: true, message: 'User service is running' });
 });
