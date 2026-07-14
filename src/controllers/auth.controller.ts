@@ -26,7 +26,7 @@ export const sendOtp = async(req: any, res: any, next: any) => {
       httpOnly: true,
       secure: config.isProduction,
       sameSite: "lax",
-      maxAge: config.OTP_EXPIRY_TIME * 1000,
+      maxAge: config.OTP_EXPIRY_TIME * 60 * 1000,
     }).status(200).json({ message: "OTP sent successfully" });
   } catch (error) {
     next(error);

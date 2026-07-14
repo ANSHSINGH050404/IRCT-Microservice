@@ -64,7 +64,7 @@ export const login = async (email: string, password: string, deviceId: string) =
     throw new BadRequestError("Invalid email or password");
   }
 
-  const accessToken = generateAccessToken(user.id);
+  const accessToken = generateAccessToken(user.id, user.email);
   const { token: refreshToken, jti } = generateRefreshToken(user.id);
 
   await redis.set(`refresh_token:${jti}`, user.id, "EX", config.REFRESH_TOKEN_EXPIRY_TIME);
@@ -84,7 +84,9 @@ export const rotateRefreshToken = async (oldRefreshToken: string, deviceId: stri
 
   await redis.del(`refresh_token:${payload.jti}`);
 
-  const accessToken = generateAccessToken(payload.id);
+  const user = await prisma.user.findUnique({ where: { id: payload.id }, select: { email: true } });
+  if (!user) throw new UnauthorizedError("User not found");
+  const accessToken = generateAccessToken(payload.id, user.email);
   const { token: newRefreshToken, jti } = generateRefreshToken(payload.id);
 
   await redis.set(`refresh_token:${jti}`, payload.id, "EX", config.REFRESH_TOKEN_EXPIRY_TIME);

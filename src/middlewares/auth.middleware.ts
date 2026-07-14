@@ -5,7 +5,7 @@ import { UnauthorizedError } from "../utils/error";
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: string };
+      user?: { id: string; email: string };
     }
   }
 }
@@ -19,7 +19,7 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
 
   try {
     const decoded = verifyAccessToken(token);
-    req.user = { id: decoded.id };
+    req.user = { id: decoded.id, email: decoded.email };
     next();
   } catch (err) {
     next(err);
